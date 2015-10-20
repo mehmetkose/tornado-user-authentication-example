@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#-*- coding:utf-8 -*-
+
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
@@ -5,7 +8,7 @@ import tornado.options
 import os.path
 from tornado.options import define, options
 
-define("port", default=8000, help="run on the given port", type=int)
+define("port", default=8888, help="run on the given port", type=int)
 
 class BaseHandler(tornado.web.RequestHandler):
 	def get_current_user(self):
@@ -22,20 +25,21 @@ class LoginHandler(BaseHandler):
 	def post(self):
 		getusername = self.get_argument("username")
 		getpassword = self.get_argument("password")
+		# TODO : Check data from DB
 		if "demo" == getusername and "demo" == getpassword:
 		    self.set_secure_cookie("user", self.get_argument("username"))
-		    self.redirect("/")
+		    self.redirect(self.reverse_url("main"))
 		else:
-		    wrong=self.get_secure_cookie("wrong")
-		    if wrong==False or wrong == None:
-		        wrong=0  
+		    wrong = self.get_secure_cookie("wrong")
+		    if not wrong:
+		    	wrong = 0
 		    self.set_secure_cookie("wrong", str(int(wrong)+1))
-		    self.write('Kullanici Adi veya Sifre Yanlis <a href="/login">Geri</a> '+str(wrong))
+		    self.write('Something Wrong With Your Data <a href="/login">Back</a> '+str(wrong))
 
 class LogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("user")
-        self.redirect(self.get_argument("next", "/"))
+        self.redirect(self.get_argument("next", self.reverse_url("main")))
 
 class Application(tornado.web.Application):
     def __init__(self):
