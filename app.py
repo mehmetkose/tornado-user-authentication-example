@@ -17,28 +17,31 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
-        incorrect = self.get_secure_cookie("incorrect") or 0
-        if int(incorrect) > 20:
-            self.write('<center>blocked</center>')
-            return
         self.render('index.html', user=self.current_user)
 
 class LoginHandler(BaseHandler):
+    @tornado.gen.coroutine
     def get(self):
+        incorrect = self.get_secure_cookie("incorrect")
+        if incorrect and int(incorrect) > 25:
+            self.write('<center>blocked</center>')
+            return
         self.render('login.html')
+
+    @tornado.gen.coroutine
     def post(self):
         getusername = self.get_argument("username")
         getpassword = self.get_argument("password")
-        # TODO : Check data from DB
         if "demo" == getusername and "demo" == getpassword:
             self.set_secure_cookie("user", self.get_argument("username"))
-            self.redirect(self.reverse_url("main"))
+            self.set_secure_cookie("incorrect", "0")
+            self.redirect(self.reverse_url("manage"))
         else:
             incorrect = self.get_secure_cookie("incorrect")
             if not incorrect:
                 incorrect = 0
             self.set_secure_cookie("incorrect", str(int(incorrect)+1))
-            self.write('Something Wrong With Your Data <a href="/login">Back</a> '+str(incorrect))
+            self.write('<center>Something Wrong With Your Data <a href="/">Go Home</a></center>')
 
 class LogoutHandler(BaseHandler):
     def get(self):
