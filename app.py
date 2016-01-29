@@ -30,12 +30,12 @@ class LoginHandler(BaseHandler):
 
     @tornado.gen.coroutine
     def post(self):
-        getusername = self.get_argument("username")
-        getpassword = self.get_argument("password")
+        getusername = tornado.escape.xhtml_escape(self.get_argument("username"))
+        getpassword = tornado.escape.xhtml_escape(self.get_argument("password"))
         if "demo" == getusername and "demo" == getpassword:
             self.set_secure_cookie("user", self.get_argument("username"))
             self.set_secure_cookie("incorrect", "0")
-            self.redirect(self.reverse_url("manage"))
+            self.redirect(self.reverse_url("main"))
         else:
             incorrect = self.get_secure_cookie("incorrect")
             if not incorrect:
